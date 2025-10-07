@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/andrealijaramosagostini/RiderProjects/ConsoleApp1/libs/ShrimpFramework/ShrimpFramework/ShrimpFramework.csproj",
+      "projectUniqueName": "/Users/andrealijaramosagostini/RiderProjects/shrimp/shrimp/libs/ShrimpFramework/ShrimpFramework/ShrimpFramework.csproj",
       "projectName": "ShrimpFramework",
-      "projectPath": "/Users/andrealijaramosagostini/RiderProjects/ConsoleApp1/libs/ShrimpFramework/ShrimpFramework/ShrimpFramework.csproj",
+      "projectPath": "/Users/andrealijaramosagostini/RiderProjects/shrimp/shrimp/libs/ShrimpFramework/ShrimpFramework/ShrimpFramework.csproj",
       "packagesPath": "/Users/andrealijaramosagostini/.nuget/packages/",
-      "outputPath": "/Users/andrealijaramosagostini/RiderProjects/ConsoleApp1/libs/ShrimpFramework/ShrimpFramework/obj/",
+      "outputPath": "/Users/andrealijaramosagostini/RiderProjects/shrimp/shrimp/libs/ShrimpFramework/ShrimpFramework/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/Users/andrealijaramosagostini/.nuget/NuGet/NuGet.Config"
