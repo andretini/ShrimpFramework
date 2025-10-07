@@ -54,11 +54,13 @@ public class Route
             string inner = type switch
             {
                 "int"  => @"\d+",
+                "str"  => @"[^/]+",
                 "guid" => @"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}",
-                "slug" => @"[a-zA-Z0-9_-]+",
+                "slug" => @"[a-z0-9]+(?:-[a-z0-9]+)*",
                 "*"    => @".+",
                 _      => @"[^/]+"
             };
+
             return $@"(?<{name}>{inner})";
         });
 
@@ -78,7 +80,9 @@ public class RouteParams : Dictionary<string, string>
 
 public class Router
 {
+    
     private readonly List<Route> routes = new();
+    public RouteGroup Group(string prefix) => new RouteGroup(this, prefix);
 
     public Router Get(string pattern, Func<HttpListenerRequest, HttpListenerResponse, RouteParams, Task> handler)
         => Add("GET", pattern, handler);
@@ -100,8 +104,15 @@ public class Router
 
     public async Task<bool> TryHandleAsync(HttpListenerRequest req, HttpListenerResponse res)
     {
-        string path = req.Url!.AbsolutePath; // e.g. "/users/42"
+        
+        string path = req.Url!.AbsolutePath; // e.g. "/projects/"
+
+        // Normalize: treat "/foo/" the same as "/foo"
+        if (path.Length > 1 && path.EndsWith("/"))
+            path = path.TrimEnd('/');
+
         var candidates = routes.Where(r => r.Regex.IsMatch(path)).ToList();
+        
         if (candidates.Count == 0)
         {
             return false; // no route matched path, caller should send 404
@@ -132,6 +143,37 @@ public class Router
         return true;
     }
 }
+
+public readonly struct RouteGroup
+{
+    private readonly Router _router;
+    private readonly string _prefix; // normalized, no trailing '/'
+
+    internal RouteGroup(Router router, string prefix)
+    {
+        _router = router;
+        _prefix = (prefix ?? string.Empty).TrimEnd('/');
+        if (_prefix.Length == 0) _prefix = ""; // allow root group
+    }
+
+    private string Combine(string pattern)
+    {
+        // Treat "/" or "" as the group's root => no trailing slash
+        var tail = (pattern ?? "").Trim();
+        if (tail.Length == 0 || tail == "/")
+            return _prefix.Length == 0 ? "/" : _prefix;
+
+        // Normal path join: ensure exactly one slash
+        if (!tail.StartsWith("/")) tail = "/" + tail;
+        return (_prefix.Length == 0 ? "" : _prefix) + tail;
+    }
+
+    public RouteGroup Get   (string pattern, Func<HttpListenerRequest,HttpListenerResponse,RouteParams,Task> h) { _router.Get   (Combine(pattern), h); return this; }
+    public RouteGroup Post  (string pattern, Func<HttpListenerRequest,HttpListenerResponse,RouteParams,Task> h) { _router.Post  (Combine(pattern), h); return this; }
+    public RouteGroup Put   (string pattern, Func<HttpListenerRequest,HttpListenerResponse,RouteParams,Task> h) { _router.Put   (Combine(pattern), h); return this; }
+    public RouteGroup Delete(string pattern, Func<HttpListenerRequest,HttpListenerResponse,RouteParams,Task> h) { _router.Delete(Combine(pattern), h); return this; }
+}
+
 
 public class ShrimpServer
 {
